@@ -1,2 +1,2 @@
-user="username"
-pass="password"
+user=youruser
+pass=yourpassword
