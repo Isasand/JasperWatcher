@@ -1,2 +1,2 @@
-user=isasand
-pass=JasperPass1
+user=username
+pass=password
