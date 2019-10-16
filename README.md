@@ -33,7 +33,8 @@ Set up:
 			"Resource" : "arn:aws:ses:*"
 		}
 	]
-}```
+}
+```
  
 * Attach the role to the Lambda function 
 * Set environment variablesi needed: 
