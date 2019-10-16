@@ -37,7 +37,7 @@ Set up:
 ```
  
 * Attach the role to the Lambda function 
-* Set environment variablesi needed: 
+* Set environment variables needed: 
   * Key: password Value: Jasper Wireless password 
   * Key: user Value: Jasper Wireless username 
 * Provide some search units to the list in JasperWatcher.py (this will be replaced with a text file for easier use) 
