@@ -10,7 +10,8 @@ Set up:
 * Install the Requests library locally, create a Lambda package with that and JasperWatcher.py. 
 * Upload the zip file to AWS Lambda. 
 * Create an IAM role with the following premissions: 
-```{
+```
+{
 	"Version" : "2012-10-17", 
 	"Statement" : [
 		{
