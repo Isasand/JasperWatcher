@@ -33,7 +33,7 @@ SES - Simple Email Service (Email)
 
 SNS_NOTIFICATION = False
 # Change to your number (Currently Isas number)
-number = "46733526475"
+number = ""
 
 SES_NOTIFICATION = True
 
