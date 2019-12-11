@@ -128,8 +128,8 @@ def send_SNS_notification(units):
         print("SMS sent!")
 
 def send_SES_notification(units): 
-    SENDER = "DMS JasperWatcher <dms@tritech.se>"
-    RECIPIENT = "urban.rossang@tritech.se"
+    SENDER = ""
+    RECIPIENT = ""
     AWS_REGION = "eu-west-1"
     SUBJECT = "A unit you are watching is in session!"    
     
