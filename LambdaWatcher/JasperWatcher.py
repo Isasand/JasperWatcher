@@ -4,6 +4,7 @@ import os
 import boto3
 import time 
 from botocore.exceptions import ClientError
+from base64 import b64decode
 '''
 Pseudo code: 
 
@@ -13,15 +14,15 @@ For every id in our searchlist:
     Get a JSON of matching unit data
     For each matching unit: 
         Get sim id 
-        Get device id 
+        Get device id
         If the unit is in session:
             Get ip for the unit 
     
 If there was any units in session:
     If email notification is on: 
-        Email the device id and ip of units in session 
+        Email the device id, ip and iccid of units in session 
     If SMS notification is on: 
-        SNS the device id and ip of units in session
+        SNS the device id, ip and iccid of units in session
 '''
 
 '''
@@ -29,21 +30,31 @@ Available notification types:
 SNS - Simple Notification Service (SMS)
 SES - Simple Email Service (Email) 
 '''
-SNS_NOTIFICATION = False 
-SES_NOTIFICATION = True 
 
-searchunits = [] 
+SNS_NOTIFICATION = False
+# Change to your number (Currently Isas number)
+number = "46733526475"
+
+SES_NOTIFICATION = True
+
+fileHandler = open ("ICCIDs.txt", "r")
+# Get list of all iccids in the file
+listOfLines = fileHandler.readlines()
+searchunits = [x.replace('\n', '') for x in listOfLines]
 
 baseurl='https://tele2.jasperwireless.com/provision'
 
 epochnow = int(time.time())
 
 requestSession = requests.session()
+encrypted_password = os.environ['password']
+decrypted_password = boto3.client('kms').decrypt(CiphertextBlob=b64decode(encrypted_password))['Plaintext']
 
 def login():
+    
     data = {
       'j_username': os.environ['user'],
-      'j_password': os.environ['password']
+      'j_password': decrypted_password
     }
     
     response = requestSession.post(baseurl + '/j_acegi_security_check', data=data)
@@ -98,12 +109,12 @@ def send_SNS_notification(units):
     sns_client = session.client('sns')
     try: 
         response = sns_client.publish(
-            PhoneNumber="46733526475",
+            PhoneNumber=number,
             Message='A unit you are watching is in session!\n' + unitsInSession,
             MessageAttributes={
                 'AWS.SNS.SMS.SenderID': {
                     'DataType': 'String',
-                    'StringValue': 'SENDERID'
+                    'StringValue': 'DMS'
                 },
                 'AWS.SNS.SMS.SMSType': {
                     'DataType': 'String',
@@ -117,8 +128,8 @@ def send_SNS_notification(units):
         print("SMS sent!")
 
 def send_SES_notification(units): 
-    SENDER = "Sender Name <dms@tritech.se>"
-    RECIPIENT = "isa.sand@tritech.se"
+    SENDER = "DMS JasperWatcher <dms@tritech.se>"
+    RECIPIENT = "urban.rossang@tritech.se"
     AWS_REGION = "eu-west-1"
     SUBJECT = "A unit you are watching is in session!"    
     
@@ -160,6 +171,7 @@ def send_SES_notification(units):
     
     
 def lambda_handler(event, context):
+
     login()
     unitsInSession = {}
     
@@ -168,17 +180,18 @@ def lambda_handler(event, context):
         for i in range (0, len(unitData['data'])): 
             simId = unitData['data'][i]['simId']
             deviceId = unitData['data'][i]['deviceId']
-            if in_session(unitData): 
-                 unitsInSession[deviceId] = get_ip(unit, simId)
-        
+            iccid = unitData['data'][i]['iccid']
+            ip = get_ip(unit, simId)
+            if ip != None:
+                unitsInSession[deviceId] = get_ip(unit, simId) + ', ' + iccid
+
     if len(unitsInSession) > 0: 
         if SNS_NOTIFICATION: 
             send_SNS_notification(unitsInSession)
         if SES_NOTIFICATION: 
             send_SES_notification(unitsInSession)
-            
+
     return {
         'statusCode': 200,
         'body': json.dumps("Jasperwatcher is ok")
     }
-
